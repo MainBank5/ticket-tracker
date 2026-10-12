@@ -11,7 +11,7 @@ function shutdown(signal: string): void {
   server.close(() => {
     void prisma.$disconnect().finally(() => process.exit(0));
   });
-  setTimeout(() => process.exit(1), 10_000).unref(); // don't hang forever
+  setTimeout(() => process.exit(1), 10_000).unref(); 
 }
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));

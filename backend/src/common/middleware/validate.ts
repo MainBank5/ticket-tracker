@@ -40,10 +40,7 @@ export function validate(schemas: Partial<Record<RequestPart, z.ZodType>>): Requ
   };
 }
 
-/**
- * Typed accessor for validated data. Pass the same schema that the route's validate()
- * used — it only drives the return type, nothing is parsed twice.
- */
+
 export function getValid<S extends z.ZodType>(req: Request, part: RequestPart, _schema: S): z.output<S> {
   return req.valid?.[part] as z.output<S>;
 }

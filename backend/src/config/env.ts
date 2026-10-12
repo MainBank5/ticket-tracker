@@ -20,8 +20,7 @@ if (!parsed.success) {
 
 const env = parsed.data;
 
-// Tests must never touch the dev database (they truncate tables), so under
-// NODE_ENV=test only TEST_DATABASE_URL is read. prisma.config.ts applies the same rule.
+// Tests must never touch the dev database so we require a separate test database URL.
 const databaseUrl = env.NODE_ENV === 'test' ? env.TEST_DATABASE_URL : env.DATABASE_URL;
 if (!databaseUrl) {
   const name = env.NODE_ENV === 'test' ? 'TEST_DATABASE_URL' : 'DATABASE_URL';
