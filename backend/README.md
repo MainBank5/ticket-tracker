@@ -1,6 +1,6 @@
 # Mini Ticket Tracker — API
 
-REST API for tracking support tickets. Node.js (Express 5) + TypeScript + PostgreSQL via Prisma. The Next.js UI lives in `../frontend`.
+REST API for tracking support tickets. Node.js (Express 5) + TypeScript + PostgreSQL via Prisma. The Next.js UI lives in `../frontend`; run both together with the [root README](../README.md).
 
 ## Setup
 
@@ -80,14 +80,4 @@ New features get their own folder under `modules/` and one `app.use(...)` line i
 
 ## Decisions & Tradeoffs
 
-_(Draft — edit so it reflects your own reasoning before submitting.)_
-
-- Layered modules (routes → controller → service → repository) keep HTTP, business rules and data access separate; for something this small it is slightly more ceremony than needed, but it shows how the codebase would grow.
-- Prisma gives typed queries and managed migrations for little code. The tradeoffs are a generate step and a heavier toolchain than plain SQL; for this schema, raw `pg` would also have been fine.
-- Request bodies and query strings are validated with zod, and Postgres `CHECK` constraints back that up as a safety net. `status`/`priority` are `TEXT` + `CHECK` instead of native enums (adding a value is a constraint change, not an enum migration). Prisma doesn't model CHECK constraints, so they live in the migration SQL, and the mapper narrows the strings to the `TicketStatus`/`TicketPriority` unions.
-- Express 5 forwards async errors to the error handler on its own, so controllers have no try/catch; every error leaves the API in one JSON shape.
-- Tickets have UUID primary keys (non-guessable, larger indexes than an integer), and the JSON uses snake_case `created_at` to match the spec. A small mapper keeps that API shape independent of Prisma's camelCase model.
-- Pagination is offset-based (`page`/`limit`) as the spec asks; it is simple but slows down on very deep pages. With more time I'd use keyset pagination on `(created_at, id)`.
-- When `NODE_ENV=test`, the app and the Prisma CLI only read `TEST_DATABASE_URL`, because the tests `TRUNCATE` tables and must never be able to touch the dev database.
-- Assumptions: new tickets always start as `open` (so `status` is rejected on create); PATCH only edits status/priority; no auth, no delete endpoint, no editing of title/description, since none were requested.
-- Not done: authentication, rate limiting, structured logging, OpenAPI docs, CI, and tests for DB failure paths.
+See the [root README](../README.md#decisions--tradeoffs).
