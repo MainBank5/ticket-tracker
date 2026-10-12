@@ -1,0 +1,25 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// status / priority are plain text columns guarded by CHECK constraints (see the
+// init migration) rather than native enums. Prisma doesn't model CHECK constraints,
+// so the allowed values live in src/modules/tickets/tickets.constants.ts + zod.
+model Ticket {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String   @db.VarChar(200)
+  description String?
+  status      String   @default("open")
+  priority    String   @default("medium")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([createdAt(sort: Desc), id(sort: Desc)])
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@map("tickets")
+}
