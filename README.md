@@ -39,7 +39,7 @@ Integration tests (13) run the real Express app against a real PostgreSQL test d
 
 ## Decisions & Tradeoffs
 
-_(Draft )_
+
 
 - The backend is split into layers per module (routes → controller → service → repository) so HTTP, business rules and data access stay separate; for something this small it is slightly more ceremony than needed, but it shows how new features would slot in.
 - Prisma gives typed queries and managed migrations for little code, at the cost of a generate step and a heavier toolchain than plain SQL.
