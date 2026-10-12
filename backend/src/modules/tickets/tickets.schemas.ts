@@ -34,3 +34,7 @@ export const updateTicketBody = z
 export const ticketIdParams = z.object({
   id: z.uuid('id must be a valid UUID'),
 });
+
+export type CreateTicketInput = z.output<typeof createTicketBody>;
+export type ListTicketsQuery = z.output<typeof listTicketsQuery>;
+export type UpdateTicketInput = z.output<typeof updateTicketBody>;
