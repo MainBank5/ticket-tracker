@@ -1,26 +1,25 @@
 import assert from 'node:assert/strict';
-import { after, before, beforeEach, describe, it } from 'node:test';
+import { after, beforeEach, describe, it } from 'node:test';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
-import { runMigrations } from '../src/db/migrate.js';
-import { pool } from '../src/db/pool.js';
+import { prisma } from '../src/db/prisma.js';
 
 // Integration tests: real Express app + real PostgreSQL (TEST_DATABASE_URL).
+// The schema is applied beforehand by `pretest` (prisma migrate deploy).
 const app = createApp();
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-const createTicket = (body) => request(app).post('/tickets').send(body);
+const createTicket = (body: Record<string, unknown>) => request(app).post('/tickets').send(body);
 
-before(async () => {
-  await runMigrations();
-});
+type Titled = { title: string };
+type Detail = { path: string };
 
 beforeEach(async () => {
-  await pool.query('TRUNCATE tickets');
+  await prisma.$executeRaw`TRUNCATE TABLE tickets`;
 });
 
 after(async () => {
-  await pool.end();
+  await prisma.$disconnect();
 });
 
 describe('POST /tickets', () => {
@@ -49,8 +48,8 @@ describe('POST /tickets', () => {
     assert.equal(res.status, 400);
     assert.equal(res.body.error.code, 'VALIDATION_ERROR');
     assert.ok(res.body.error.details.length >= 2);
-    assert.ok(res.body.error.details.some((d) => d.path === 'title'));
-    assert.ok(res.body.error.details.some((d) => d.path === 'priority'));
+    assert.ok(res.body.error.details.some((d: Detail) => d.path === 'title'));
+    assert.ok(res.body.error.details.some((d: Detail) => d.path === 'priority'));
   });
 
   it('rejects malformed JSON with a 400', async () => {
@@ -66,11 +65,11 @@ describe('GET /tickets', () => {
 
     const page1 = await request(app).get('/tickets?page=1&limit=2');
     assert.equal(page1.status, 200);
-    assert.deepEqual(page1.body.data.map((t) => t.title), ['Ticket 5', 'Ticket 4']);
+    assert.deepEqual(page1.body.data.map((t: Titled) => t.title), ['Ticket 5', 'Ticket 4']);
     assert.deepEqual(page1.body.meta, { page: 1, limit: 2, total: 5, total_pages: 3 });
 
     const page3 = await request(app).get('/tickets?page=3&limit=2');
-    assert.deepEqual(page3.body.data.map((t) => t.title), ['Ticket 1']);
+    assert.deepEqual(page3.body.data.map((t: Titled) => t.title), ['Ticket 1']);
 
     const beyond = await request(app).get('/tickets?page=9&limit=2');
     assert.equal(beyond.status, 200);
@@ -136,7 +135,7 @@ describe('GET /tickets/stats', () => {
   });
 
   it('counts tickets grouped by status', async () => {
-    const ids = [];
+    const ids: string[] = [];
     for (const title of ['1', '2', '3', '4']) ids.push((await createTicket({ title })).body.data.id);
     await request(app).patch(`/tickets/${ids[0]}`).send({ status: 'closed' });
     await request(app).patch(`/tickets/${ids[1]}`).send({ status: 'closed' });
