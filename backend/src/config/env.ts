@@ -13,14 +13,15 @@ const parsed = schema.safeParse(process.env);
 if (!parsed.success) {
   console.error('Invalid environment configuration:');
   for (const issue of parsed.error.issues) {
-    console.error(`  ${issue.path.join('.')}: ${issue.message}`);
+    console.error(`  ${issue.path.map(String).join('.')}: ${issue.message}`);
   }
   process.exit(1);
 }
 
 const env = parsed.data;
 
-// Tests must never touch the dev database (they truncate tables).
+// Tests must never touch the dev database (they truncate tables), so under
+// NODE_ENV=test only TEST_DATABASE_URL is read. prisma.config.ts applies the same rule.
 const databaseUrl = env.NODE_ENV === 'test' ? env.TEST_DATABASE_URL : env.DATABASE_URL;
 if (!databaseUrl) {
   const name = env.NODE_ENV === 'test' ? 'TEST_DATABASE_URL' : 'DATABASE_URL';
@@ -34,4 +35,4 @@ export const config = {
   port: env.PORT,
   corsOrigin: env.CORS_ORIGIN,
   databaseUrl,
-};
+} as const;

@@ -1,18 +1,18 @@
 import cors from 'cors';
-import express from 'express';
-import { config } from './config/env.js';
+import express, { type Express } from 'express';
 import { errorHandler, notFoundHandler } from './common/middleware/errorHandler.js';
-import { pool } from './db/pool.js';
+import { config } from './config/env.js';
+import { prisma } from './db/prisma.js';
 import { ticketsRouter } from './modules/tickets/index.js';
 
-export function createApp() {
+export function createApp(): Express {
   const app = express();
 
   app.use(cors({ origin: config.corsOrigin }));
   app.use(express.json({ limit: '100kb' }));
 
   app.get('/health', async (_req, res) => {
-    await pool.query('SELECT 1');
+    await prisma.$queryRaw`SELECT 1`;
     res.json({ status: 'ok' });
   });
 

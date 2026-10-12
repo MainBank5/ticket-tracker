@@ -1,16 +1,15 @@
 import { createApp } from './app.js';
 import { config } from './config/env.js';
-import { pool } from './db/pool.js';
+import { prisma } from './db/prisma.js';
 
 const server = createApp().listen(config.port, () => {
   console.log(`API listening on http://localhost:${config.port} (${config.env})`);
 });
 
-async function shutdown(signal) {
+function shutdown(signal: string): void {
   console.log(`${signal} received, shutting down...`);
-  server.close(async () => {
-    await pool.end();
-    process.exit(0);
+  server.close(() => {
+    void prisma.$disconnect().finally(() => process.exit(0));
   });
   setTimeout(() => process.exit(1), 10_000).unref(); // don't hang forever
 }
