@@ -9,7 +9,7 @@ A small support-ticket tracker: REST API + database + a single-page UI.
 
 ## Quick start
 
-Requirements: Node.js 20.19+ and Docker (or your own PostgreSQL 13+).
+Requirements: Node.js 20.19+ and Docker (PostgreSQL 13+).
 
 ```bash
 # 1. Database + API  (http://localhost:4000)
